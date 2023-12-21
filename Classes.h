@@ -11,6 +11,7 @@ extern const int width;
 extern const int height;
 extern const int centerX;
 extern const int centerY;
+extern bool doRepeat;
 extern HANDLE color;
 
 struct Pos {
@@ -40,9 +41,6 @@ struct Choices {
 	bool right;
 };
 
-struct Scenes {
-	function<void()>
-};
 
 class Player {
 public:

@@ -24,6 +24,10 @@ void SceneA3();
 void SceneA4();
 
 vector<vector<string>> scene1Map;
+vector<vector<string>> sceneA1Map;
+vector<vector<string>> sceneA2Map;
+vector<vector<string>> sceneA3Map;
+vector<vector<string>> sceneA4Map;
 
 Choices availableRoads;
 
@@ -98,18 +102,19 @@ void SceneA1() {
 	availableRoads = { false, true, false, true };
 	system("cls");
 	DrawBorder(height, width);
-	scene1Map = BuildRoads(false, true, false, true);
+	sceneA1Map = BuildRoads(false, true, false, true);
 	cin.ignore();
-	return SceneA2();
+	
+	return pickMove(scenes, availableRoads, positionPlayer, sceneA1Map);
 }
 
 void SceneA2() {
 	availableRoads = { false, false, true, true };
 	system("cls");
 	DrawBorder(height, width);
-	scene1Map = BuildRoads(false, false, true, true);
-	cin.ignore();
-	return SceneA3();
+	sceneA2Map = BuildRoads(false, false, true, true);
+	
+	return pickMove(scenes, availableRoads, positionPlayer, sceneA2Map);
 }
 
 void SceneA3() {

@@ -5,9 +5,11 @@
 
 #include "Classes.h"
 
-string playerID = "\u2b22";
-
 using namespace std;
+
+bool doRepeat = true;
+string playerID = "\u2b22";
+int currScene[2] = { 0, 0 };
 
 Pos centerPoint = { centerX, centerY };
 Pos pointUp = { centerX, 2 };
@@ -90,7 +92,7 @@ void Move(Pos posPlayer, Pos newPos, vector<vector<string>> mapdata) {
 }
 
             									 //    index
-int canContinueMove(Pos& playerpos, Choices roads, int currScene, int input, vector<vector<string>> mapdata) {
+void canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<string>> mapdata) {
 //		CENTER POINT  ||  Position of Player
 	if (playerpos == centerPoint) {
 		switch (input) {
@@ -155,7 +157,6 @@ int canContinueMove(Pos& playerpos, Choices roads, int currScene, int input, vec
 //		POINT UP  ||  Position of Player
 	if (playerpos == pointUp) {
 		switch (input) {
-		case 1:
 		case 3:
 		case 4:
 			ToPosition(width + 6, 10);
@@ -168,6 +169,12 @@ int canContinueMove(Pos& playerpos, Choices roads, int currScene, int input, vec
 			// Move Function
 			Move(playerpos, centerPoint, mapdata);
 			playerpos = centerPoint;
+			break;
+		case 1:
+			// gonna try a bool condition if true means anotehr entrance to next scene and false
+			// an entrance to previous scene;
+			currScene[0] = (currScene[0] == 0) ? currScene[0] + 1 : currScene[0];
+			currScene[1] += 1;
 			break;
 		}
 	}
@@ -229,13 +236,11 @@ int canContinueMove(Pos& playerpos, Choices roads, int currScene, int input, vec
 			break;
 		}
 	}
-
-	return 0;
 }
 
 void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playerpos, vector<vector<string>> mapData) {
 
-	int currentScene = 0;
+	doRepeat = true;
 	int indent = width + 6;
 	int movepick = 0;
 
@@ -269,19 +274,26 @@ void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playe
 
 	switch (movepick) {
 	case 1:
-		canContinueMove(playerpos, roads, currentScene, movepick, mapData);
+		canContinueMove(playerpos, roads, movepick, mapData);
+		// make dorepeat a parameter
+		doRepeat = false;
+		scenes[currScene[0]][currScene[1]]();
 		break;
 	case 2:
-		canContinueMove(playerpos, roads, currentScene, movepick, mapData);
+		canContinueMove(playerpos, roads, movepick, mapData);
 		break;
 	case 3:
-		canContinueMove(playerpos, roads, currentScene, movepick, mapData);
+		canContinueMove(playerpos, roads, movepick, mapData);
 		break;
 	case 4:
-		canContinueMove(playerpos, roads, currentScene, movepick, mapData);
+		canContinueMove(playerpos, roads, movepick, mapData);
 		break;
 	}
-	pickMove(scenes, roads, playerpos, mapData);
+
+
+	if (doRepeat) {
+		return pickMove(scenes, roads, playerpos, mapData);
+	}
 }
 
 void DrawBorder(int height, int width) {
