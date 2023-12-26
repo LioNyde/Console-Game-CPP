@@ -2,21 +2,29 @@
 #include <Windows.h>
 #include <iostream>
 #include <vector>
-
+#include <map>
 #include "Classes.h"
 
 using namespace std;
 
-bool doRepeat = true;
+bool doRepeat;
+int sindex = 0; // scene index
 string playerID = "\u2b22";
-int currScene[2] = { 0, 0 };
-
 Pos centerPoint = { centerX, centerY };
 Pos pointUp = { centerX, 2 };
 Pos pointDown = { centerX, centerY * 2 - 2 };
 Pos pointLeft = { 2, centerY };
 Pos pointRight = { centerX * 2 - 2, centerY };
 
+HANDLE color = GetStdHandle(STD_OUTPUT_HANDLE);
+
+
+map<Pos, Pos> reversePosition = {
+	{pointUp, pointDown},
+	{pointDown, pointUp},
+	{pointLeft, pointRight},
+	{pointRight, pointLeft}
+};
 
 Player::Player(Pos currPosition, float health) {
 	this->currentPosition = currPosition;
@@ -91,8 +99,9 @@ void Move(Pos posPlayer, Pos newPos, vector<vector<string>> mapdata) {
 	}
 }
 
-            									 //    index
-void canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<string>> mapdata) {
+//                         position    roads drawn                characters drawn in console       
+bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<string>> mapdata, Direction &walkpast) {
+	bool doreturn = false;
 //		CENTER POINT  ||  Position of Player
 	if (playerpos == centerPoint) {
 		switch (input) {
@@ -171,10 +180,9 @@ void canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 			playerpos = centerPoint;
 			break;
 		case 1:
-			// gonna try a bool condition if true means anotehr entrance to next scene and false
-			// an entrance to previous scene;
-			currScene[0] = (currScene[0] == 0) ? currScene[0] + 1 : currScene[0];
-			currScene[1] += 1;
+			sindex = (sindex == 0) ? 1 : sindex;
+			doreturn = true; //if true then the program knows that we changing  scene and break recursion before proceeding
+			walkpast = Direction::up;
 			break;
 		}
 	}
@@ -186,7 +194,6 @@ void canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 			Move(playerpos, centerPoint, mapdata);
 			playerpos = centerPoint;
 			break;
-		case 2:
 		case 3:
 		case 4:
 			ToPosition(width + 6, 10);
@@ -195,6 +202,10 @@ void canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 			ToPosition(width + 6, 10);
 			cout << "                               ";
 			break;
+		case 2:
+			sindex = (sindex == 0) ? 2 : sindex;
+			doreturn = true; //if true then the program knows that we changing  scene and break recursion before proceeding
+			walkpast = Direction::down;
 		}
 	}
 
@@ -203,7 +214,6 @@ void canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 		switch (input) {
 		case 1:
 		case 2:
-		case 3:
 			ToPosition(width + 6, 10);
 			cout << "Cant do that!!";
 			Sleep(500);
@@ -214,6 +224,11 @@ void canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 			// Move Function
 			Move(playerpos, centerPoint, mapdata);
 			playerpos = centerPoint;
+			break;
+		case 3:
+			sindex = (sindex == 0) ? 2 : sindex;
+			doreturn = true; //if true then the program knows that we changing  scene and break recursion before proceeding
+			walkpast = Direction::left;
 			break;
 		}
 	}
@@ -222,7 +237,6 @@ void canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 		switch (input) {
 		case 1:
 		case 2:
-		case 4:
 			ToPosition(width + 6, 10);
 			cout << "Cant do that!!";
 			Sleep(500);
@@ -234,17 +248,22 @@ void canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 			Move(playerpos, centerPoint, mapdata);
 			playerpos = centerPoint;
 			break;
+		case 4:
+			doreturn = true; //if true then the program knows that we changing  scene and break recursion before proceeding
+			walkpast = Direction::right;
+			break;
 		}
 	}
+	return doreturn;
 }
 
-void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playerpos, vector<vector<string>> mapData) {
+void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playerpos, vector<vector<string>> mapData, map<Direction, int> scenenav) {
 
 	doRepeat = true;
 	int indent = width + 6;
 	int movepick = 0;
-
-
+	bool changeScene;
+	Direction pickedRoad;
 //		D I S P L A Y    P L A Y E R
 	ToPosition(playerpos.x, playerpos.y);
 	cout << playerID;
@@ -269,31 +288,48 @@ void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playe
 	ToPosition(indent, 7);
 	cout << "Choose an action : ";
 	cin >> movepick;
-
 	
-
+	
 	switch (movepick) {
 	case 1:
-		canContinueMove(playerpos, roads, movepick, mapData);
+		changeScene = canContinueMove(playerpos, roads, movepick, mapData, pickedRoad);
 		// make dorepeat a parameter
-		doRepeat = false;
-		scenes[currScene[0]][currScene[1]]();
+		if (changeScene) {
+			doRepeat = false;
+		}
 		break;
 	case 2:
-		canContinueMove(playerpos, roads, movepick, mapData);
+		changeScene = canContinueMove(playerpos, roads, movepick, mapData, pickedRoad);
+		// make dorepeat a parameter
+		if (changeScene) {
+			doRepeat = false;
+		}
 		break;
 	case 3:
-		canContinueMove(playerpos, roads, movepick, mapData);
+		changeScene = canContinueMove(playerpos, roads, movepick, mapData, pickedRoad);
+		// make dorepeat a parameter
+		if (changeScene) {
+			doRepeat = false;
+		}
 		break;
 	case 4:
-		canContinueMove(playerpos, roads, movepick, mapData);
+		changeScene = canContinueMove(playerpos, roads, movepick, mapData, pickedRoad);
+		// make dorepeat a parameter
+		if (changeScene) {
+			doRepeat = false;
+		}
 		break;
 	}
 
 
 	if (doRepeat) {
-		return pickMove(scenes, roads, playerpos, mapData);
+		return pickMove(scenes, roads, playerpos, mapData, scenenav);
 	}
+	playerpos = reversePosition[playerpos];
+	if (scenenav[pickedRoad] == -1) {
+		scenes[0][0]();
+	}
+	scenes[sindex][scenenav[pickedRoad]]();
 }
 
 void DrawBorder(int height, int width) {

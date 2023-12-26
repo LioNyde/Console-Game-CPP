@@ -6,3 +6,6 @@ THINGS TO IMPLEMENT
 3. Their features
  - Battle system
  - Drop Item
+
+
+ fix 

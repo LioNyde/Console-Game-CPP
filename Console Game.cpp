@@ -1,16 +1,15 @@
 ﻿#pragma region PreProcessor
 
+#include <map>
 #include <thread>
 #include <vector>
 #include <iostream>
 #include <Windows.h>
 #include <functional>
-
 #include "Classes.h"
 
 using namespace std;
 
-bool firstTime = true;
 const int width = 33;
 const int height = 13;
 const int centerX = (width / 2) + 1;
@@ -34,8 +33,7 @@ Choices availableRoads;
 Pos positionPlayer = { centerX, centerY };
 Player Steve(positionPlayer, 100);
 
-HANDLE color = GetStdHandle(STD_OUTPUT_HANDLE);
-//vector<function<void()>> scenes = { SceneA1, SceneA2, SceneA3, SceneA4 };
+map<Direction, int> mapNav;
 vector<vector<function<void()>>> scenes = {
 	{ Scene1 },
 	{ SceneA1, SceneA2, SceneA3, SceneA4 }
@@ -87,6 +85,12 @@ void Scene1() {
 	system("cls");
 	DrawBorder(height, width);
 	scene1Map = BuildRoads(true, false, true, true);
+	mapNav = {
+		{Direction::up, 0},
+		{Direction::down, 0},
+		{Direction::left, 0},
+	}; //index of scenechains
+	
 
 
 	// Place Indentities
@@ -95,7 +99,7 @@ void Scene1() {
 	ToPosition(sworddealer.Position.x, sworddealer.Position.y);
 	cout << sworddealer.Identity;
 
-	return pickMove(scenes, availableRoads, positionPlayer, scene1Map);
+	return pickMove(scenes, availableRoads, positionPlayer, scene1Map, mapNav);
 }
 
 void SceneA1() {
@@ -103,9 +107,12 @@ void SceneA1() {
 	system("cls");
 	DrawBorder(height, width);
 	sceneA1Map = BuildRoads(false, true, false, true);
-	cin.ignore();
+	mapNav = {
+		{Direction::down, -1},
+		{Direction::right, 1}
+	};
 	
-	return pickMove(scenes, availableRoads, positionPlayer, sceneA1Map);
+	return pickMove(scenes, availableRoads, positionPlayer, sceneA1Map, mapNav);
 }
 
 void SceneA2() {
@@ -113,23 +120,35 @@ void SceneA2() {
 	system("cls");
 	DrawBorder(height, width);
 	sceneA2Map = BuildRoads(false, false, true, true);
-	
-	return pickMove(scenes, availableRoads, positionPlayer, sceneA2Map);
+	mapNav = {
+		{Direction::left, 0},
+		{Direction::right, 2}
+	};
+
+	return pickMove(scenes, availableRoads, positionPlayer, sceneA2Map, mapNav);
 }
 
 void SceneA3() {
-	availableRoads = { true, false, true, false };
 	system("cls");
+	availableRoads = { true, false, true, false };
 	DrawBorder(height, width);
-	scene1Map = BuildRoads(true, false, true, false);
-	cin.ignore();
-	return SceneA4();
+	sceneA3Map = BuildRoads(true, false, true, false);
+	mapNav = {
+		{Direction::up, 3},
+		{Direction::left, 1}
+	};
+
+	return pickMove(scenes, availableRoads, positionPlayer, sceneA3Map, mapNav);
 }
 
 void SceneA4() {
-	availableRoads = { false, true, false, false };
 	system("cls");
+	availableRoads = { false, true, false, false };
 	DrawBorder(height, width);
-	scene1Map = BuildRoads(false, true, false, false);
-	cin.ignore();
+	sceneA4Map = BuildRoads(false, true, false, false);
+	mapNav = {
+		{Direction::down, 2}
+	};
+
+	return pickMove(scenes, availableRoads, positionPlayer, sceneA4Map, mapNav);
 }
