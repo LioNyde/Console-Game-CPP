@@ -226,7 +226,6 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 			playerpos = centerPoint;
 			break;
 		case 3:
-			sindex = (sindex == 0) ? 2 : sindex;
 			doreturn = true; //if true then the program knows that we changing  scene and break recursion before proceeding
 			walkpast = Direction::left;
 			break;
@@ -249,6 +248,7 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 			playerpos = centerPoint;
 			break;
 		case 4:
+			sindex = (sindex == 0) ? 3 : sindex;
 			doreturn = true; //if true then the program knows that we changing  scene and break recursion before proceeding
 			walkpast = Direction::right;
 			break;

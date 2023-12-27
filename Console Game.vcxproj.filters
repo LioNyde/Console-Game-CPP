@@ -21,9 +21,6 @@
     <ClCompile Include="Classes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Roads.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes.h">

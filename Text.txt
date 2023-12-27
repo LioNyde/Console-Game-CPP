@@ -1,11 +1,8 @@
 
 THINGS TO IMPLEMENT
 
-1. Navigation between scenes
+1. Navigation between scenes  << DONE
 2. NPC interaction
 3. Their features
  - Battle system
  - Drop Item
-
-
- fix 
