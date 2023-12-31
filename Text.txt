@@ -6,3 +6,16 @@ THINGS TO IMPLEMENT
 3. Their features
  - Battle system
  - Drop Item
+
+
+ for npc interaction
+
+ - use struct for items weapons etc
+ - 2 npc 1 for weapons and general store (items only)
+ - use some characters to give character to maps, like wave symbols and lines
+
+
+ CURRENT TODO : fights and drops
+
+
+ - fix continous inputs to movement

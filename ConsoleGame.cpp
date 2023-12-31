@@ -55,9 +55,8 @@ vector<vector<string>> sceneC4Map;
 
 Choices availableRoads;
 Pos positionPlayer = { centerX, centerY };
-Player Steve(positionPlayer, 100);
-
 map<Direction, int> mapNav;
+
 vector<vector<function<void()>>> scenes = {
 	{ Scene1 },
 	{ SceneA1, SceneA2, SceneA3, SceneA4 },
@@ -73,13 +72,18 @@ int main()
 {
 	SetConsoleOutputCP(65001);
 	
-	cout << "START?";
-	cin.ignore();
-	system("cls");
+	DrawBorder(height, width);
+	ToPosition(6, 3);
+	string name = "";
+	cout << "PICK  A  PLAYER  NAME...";
+	ToPosition(6, 5);
+	cout << "NAME : ";
+	ToPosition(6 + 7, 5);
+	getline(cin, name);
+	playerSetup(name);
 
-
+	
 	Scene1();
-
 
 	ToPosition(1, 20);
 	cin.ignore();
@@ -87,23 +91,7 @@ int main()
 
 #pragma endregion
 
-#pragma region NPCs
-
-void ShopTalk() {
-	cout << "This is shop...";
-}
-
-void swordDealer() {
-	cout << "This is sword dealer...";
-}
-
-NPC shop = { "Shop", "\u2757", {centerX + 3, centerY + 3}, ShopTalk};
-NPC sworddealer = { "Sword Dealer", "\u2927", {centerX - 3, centerY - 2}, swordDealer};
-
-#pragma endregion
-
-
-//	VILLAGE
+//		M A I N   S C E N E
 void Scene1() {
 //	C O N F I G U R A T I O N S
 
@@ -120,13 +108,16 @@ void Scene1() {
 
 
 	// Place Indentities
-	ToPosition(shop.Position.x, shop.Position.y);
-	cout << shop.Identity;
-	ToPosition(sworddealer.Position.x, sworddealer.Position.y);
-	cout << sworddealer.Identity;
+	// SHOP
+	ToPosition(centerX + 1, centerY + 2);
+	cout << "\u2757";
+	ToPosition(centerX - 2, centerY - 3);
+	cout << "\u2927";
 
 	return pickMove(scenes, availableRoads, positionPlayer, scene1Map, mapNav);
 }
+
+#pragma region Scene Chain 1
 
 void SceneA1() {
 	availableRoads = { false, true, false, true };
@@ -167,6 +158,7 @@ void SceneA3() {
 	return pickMove(scenes, availableRoads, positionPlayer, sceneA3Map, mapNav);
 }
 
+
 void SceneA4() {
 	system("cls");
 	availableRoads = { false, true, false, false };
@@ -179,7 +171,10 @@ void SceneA4() {
 	return pickMove(scenes, availableRoads, positionPlayer, sceneA4Map, mapNav);
 }
 
-// started from left
+#pragma endregion
+
+#pragma region Scene Chain 2
+
 void SceneB1() {
 	system("cls");
 	availableRoads = { true, false, true, false };
@@ -231,6 +226,10 @@ void SceneB4() {
 	return pickMove(scenes, availableRoads, positionPlayer, sceneB4Map, mapNav);
 }
 
+#pragma endregion
+
+#pragma region Scene Chain 3
+
 void SceneC1() {
 	system("cls");
 	availableRoads = { false, false, true, true };
@@ -281,3 +280,5 @@ void SceneC4() {
 
 	return pickMove(scenes, availableRoads, positionPlayer, sceneC4Map, mapNav);
 }
+
+#pragma endregion

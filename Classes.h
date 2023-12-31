@@ -17,10 +17,17 @@ enum class Direction {
 	up, down, left, right
 };
 
-struct Road {
-	Direction direction;
-	int targetScene;
-	string name;
+
+struct Choices {
+	bool up;
+	bool down;
+	bool left;
+	bool right;
+};
+
+struct Range {
+	int min;
+	int max;
 };
 
 struct Pos {
@@ -43,33 +50,43 @@ struct Pos {
 	}
 };
 
-struct NPC {
-	string Name;
-	string Identity;
-	Pos Position;
-	function<void()> Interact;
+enum class Arms {
+	fist, sword, axe, hammer
 };
 
 
-struct Choices {
-	bool up;
-	bool down;
-	bool left;
-	bool right;
+class Weapon{
+public:
+	string name;
+	int value;
+	Range damage;
+	Weapon(string name, int value, Range damage) : name(name), value(value), damage(damage) {
+	}
 };
+
 
 
 class Player {
 public:
-	Pos currentPosition;
-	//vector<Items> inventory;
-	float Health;
-	Player(Pos currPosition, float health);
+	string name;
+	int health;
+	Weapon* equipped;
+	map<Arms, bool> unlockedWeaps;
+
+	Player(string, int);
 };
 
+struct Enemy {
+	string name;
+	int health;
+	int atkPower;
+	Range rewards;
+};
 
-
-void pickMove(vector<vector<function<void()>>> scenes, Choices roadsAvailable, Pos& playerpos, vector<vector<string>> mapdata, map<Direction, int> scenenav);
+void startFight(Player &player, Enemy &enemy);
+Enemy spawnEnemy(int index);
 void ToPosition(int x, int y);
+void playerSetup(string name);
 void DrawBorder(int height, int width);
+void pickMove(vector<vector<function<void()>>> scenes, Choices roadsAvailable, Pos& playerpos, vector<vector<string>> mapdata, map<Direction, int> scenenav);
 vector<vector<string>> BuildRoads(bool up, bool down, bool left, bool right);

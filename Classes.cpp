@@ -1,6 +1,12 @@
+#pragma region Initialization and Declarations
+
 #include <functional>
 #include <Windows.h>
 #include <iostream>
+#include <iterator>
+#include <cstdlib>
+#include <random>
+#include <string>
 #include <vector>
 #include <map>
 #include "Classes.h"
@@ -9,6 +15,7 @@ using namespace std;
 
 bool doRepeat;
 int sindex = 0; // scene index
+int sidx = 0;
 string playerID = "\u2b22";
 Pos centerPoint = { centerX, centerY };
 Pos pointUp = { centerX, 2 };
@@ -19,6 +26,11 @@ Pos pointRight = { centerX * 2 - 2, centerY };
 HANDLE color = GetStdHandle(STD_OUTPUT_HANDLE);
 
 
+#pragma endregion
+
+
+#pragma region Extra Values and Functions
+
 map<Pos, Pos> reversePosition = {
 	{pointUp, pointDown},
 	{pointDown, pointUp},
@@ -26,16 +38,340 @@ map<Pos, Pos> reversePosition = {
 	{pointRight, pointLeft}
 };
 
-Player::Player(Pos currPosition, float health) {
-	this->currentPosition = currPosition;
-	this->Health = health;
-}
 
+/// <summary>
+/// Places the cursor to any position on the windows console.
+/// </summary>
+/// <param name="x">axis position</param>
+/// <param name="y">axis position</param>
 void ToPosition(int x, int y) {
 	HANDLE cursor = GetStdHandle(STD_OUTPUT_HANDLE);
 	COORD pos = { (SHORT)x - 1 , (SHORT)y - 1 };
 	SetConsoleCursorPosition(cursor, pos);
 }
+
+
+#pragma endregion
+
+
+#pragma region Enemy
+
+int random_0_to_n(int n);
+enum class agros {
+	none, blob, boar, skeleton, draugr, goblin, troll
+};
+
+Enemy spawnEnemy(int index) {
+	map<agros, Enemy> hostiles;
+
+	if (index != 1 && index != 2 && index != 3) {
+		return { "", 0, 0, {0, 0} };
+	}
+	if (index == 1) {
+		hostiles = {
+			{agros::none, {"", 0, 0, {0, 0}}},
+			{agros::blob, {"Blob", 15, 5, {2, 6}}},
+			{agros::boar, {"Boar", 25, 6, {4, 7}}},
+		};
+	}
+	if (index == 2) {
+		hostiles = {
+			//{agros::none, {"", 0, 0, {0, 0}}}, add more of this to increase battle free
+			{agros::skeleton, {"Skeleton", 35, 13, {13, 18}}},
+			{agros::draugr, {"Draugr", 40, 16, {14, 20}}}
+		};
+	}
+	if (index == 3) {
+		hostiles = {
+			{agros::none, {"", 0, 0, {0, 0}}},
+			{agros::goblin, {"Goblin", 35, 13, {13, 18}}},
+			{agros::troll, {"Troll", 40, 16, {14, 20}}}
+		};
+	}
+	
+	
+	map<agros, Enemy>::iterator spawn = hostiles.begin();
+	advance(spawn, random_0_to_n(hostiles.size() - 1));
+	
+	return spawn->second;
+}
+
+int random_0_to_n(int n) {
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(0, n);
+	return dis(gen);
+}
+
+#pragma endregion
+
+
+#pragma region Player Values
+
+
+map<Arms, Weapon*> weapons;
+Weapon* getWeapon(Arms arm) {
+	// Try to insert a null pointer into the map for the given arm
+	auto result = weapons.insert({ arm, nullptr });
+
+	// If the insertion succeeded (the arm was not already in the map)
+	if (result.second) {
+		// Create a new Weapon and assign it to the inserted pointer
+		switch (arm) {
+		case Arms::fist:
+			result.first->second = new Weapon("Fist", 0, { 3, 4 });
+			break;
+		case Arms::sword:
+			result.first->second = new Weapon("Sword", 12, { 6, 9 });
+			break;
+		case Arms::axe:
+			result.first->second = new Weapon("Axe", 14, { 7, 9 }); 
+			break;
+		case Arms::hammer:
+			result.first->second = new Weapon("Hammer", 16, { 6, 8 });
+			break;
+		}
+	}
+
+	// Return the weapon associated with the arm
+	return result.first->second;
+}
+
+
+Player::Player(string n, int h) : name(n), health(h) {
+	this->unlockedWeaps = {
+		{Arms::fist, true},
+		{Arms::axe, false},
+		{Arms::sword, false},
+		{Arms::hammer, false}
+	};
+
+	equipped = getWeapon(Arms::fist);
+}
+
+
+
+#pragma endregion
+
+
+#pragma region Player and Enemy
+
+bool inFight = false;
+Player player("", 50);
+void playerSetup(string name) {
+	player.name = name;
+}
+
+Enemy encounter;
+
+
+void startFight(Player &player, Enemy &enemy, vector<vector<function<void()>>> scenes) {
+	system("cls");
+	ToPosition(1, 1);
+
+
+	//scenes[sindex][sidx]();
+	
+	DrawBorder(height, width);
+	ToPosition(6, centerY);
+	cout << "Engaing in Battle...";
+	Sleep(1500);
+	ToPosition(6, centerY);
+	cout << "                       ";
+
+	cin.ignore();
+
+	int y = 2;
+	while (y <= height - 1) {
+		ToPosition(centerX, y);
+		cout << "|";
+		y++;
+	}
+
+	// Display player infos
+	int pit = 3; //indent
+	int eit = centerX + 2;
+	ToPosition(pit, 3);
+	cout << player.name;
+	
+	ToPosition(pit, 5);
+	cout << "Life : " << player.health;
+	ToPosition(pit, 6);
+	cout << "Weapon : " << player.equipped->name;
+	ToPosition(pit, 7);
+	cout << "Damage : " << player.equipped->damage.min << "-" << player.equipped->damage.max;
+
+	//Display enemy infos
+	
+	ToPosition(eit, 3);
+	cout << enemy.name;
+	
+	ToPosition(eit, 5);
+	cout << "Life : " << enemy.health;
+	ToPosition(eit, 6);
+	cout << "Weapon : " << enemy.atkPower;
+
+
+	int starter = (random_0_to_n(2) > 0) ? 1 : 0; //1 for player
+	
+
+
+	// start fighting
+	bool fighting = true;
+	bool pdefense = false;
+	bool edefense = false;
+
+	while (fighting) {
+		ToPosition(width + 6, 2); // position for logs
+		cout << "                                         ";
+		ToPosition(width + 6, 2); // position for logs
+		if (starter == 1)
+			cout << player.name << " 's Turn!";
+		else
+			cout << enemy.name << " 's Turn!";
+
+
+		//  PLAYER TURN
+		if (starter == 1) {
+			ToPosition(width + 6, 9);
+			cout << "                                        ";
+			ToPosition(width + 6, 9);
+			cout << "Pick an action : ";
+			
+			ToPosition(width+6, 4);
+			cout << "1. Attack";
+			ToPosition(width + 6, 5);
+			cout << "2. Defend"; // reduce incomming damage
+			ToPosition(width + 6, 6);
+			cout << "3. Escape"; // have a chance to do so and punished if failed
+			
+
+
+			int atkOpt;
+			ToPosition(width + 6 + 17, 9);
+			cin >> atkOpt;
+			switch (atkOpt) {
+			case 1:
+			{
+				ToPosition(width + 6, 2);
+				cout << "                                  ";
+				ToPosition(width + 6, 2);
+				cout << player.name << " uses attack!"; // log
+
+				int randDmg = rand() % (player.equipped->damage.max - player.equipped->damage.min + 1) + player.equipped->damage.min;
+				int calculateDmg = randDmg;
+				if (edefense == true) {
+					calculateDmg = randDmg * .75;
+					edefense = false;
+				}
+				enemy.health = ((enemy.health - calculateDmg) >= 0) ? enemy.health - calculateDmg : 0;
+
+
+				Sleep(1500);
+				// update health
+				ToPosition(eit, 5);
+				cout << "           ";
+				ToPosition(eit, 5);
+				cout << "Life : " << enemy.health;
+
+				// log
+				ToPosition(width + 6, 2);
+				cout << "                                         ";
+				ToPosition(width + 6, 2);
+				cout << enemy.name << " took " << calculateDmg << " damage";
+				break;
+			}
+			case 2:
+				pdefense = true;
+				if (edefense)
+					edefense = false;
+				ToPosition(width + 6, 2);
+				cout << "                                  ";
+				ToPosition(width + 6, 2);
+				cout << player.name << "'s defense on!";
+				break;
+			case 3:
+				int doLeave = rand() % (5 - 1) + 1;
+				if (doLeave == 2) {
+					ToPosition(width + 6, 2);
+					cout << "                                  ";
+					ToPosition(width + 6, 2);
+					cout << "You escaped successfully.";
+					fighting = false;
+				}
+				else {
+					ToPosition(width + 6, 2);
+					cout << "                                  ";
+					ToPosition(width + 6, 2);
+					cout << "You failed to escape.";
+				}
+			}
+		}
+
+		// ENEMY TURN
+		if (starter == 0) { // for enemy
+			int randAtk = rand() % (5 - 1) + 1;
+			cout << randAtk;
+			switch (randAtk) {
+			case 1:
+			case 2:
+				// defend receive only 3/4 of dmaage
+				ToPosition(width + 6, 2);
+				cout << "                                  ";
+				ToPosition(width + 6, 2);
+				cout << enemy.name << "'s defense on!";
+
+				edefense = true;
+				if (pdefense)
+					pdefense = false;
+				break;
+			case 3:
+			case 4:
+			case 5:
+				//attack
+				ToPosition(width + 6, 2);
+				cout << "                                  ";
+				ToPosition(width + 6, 2);
+				cout << enemy.name << " uses attack!";
+
+				int dmg = enemy.atkPower;
+				if (pdefense) {
+					dmg *= .75;
+					pdefense = false;
+				}
+				player.health = ((player.health - dmg) >= 0) ? player.health - dmg : 0;
+
+
+				Sleep(1500);
+				// log
+				ToPosition(width + 6, 2);
+				cout << "                                         ";
+				ToPosition(width + 6, 2);
+				cout << player.name << " took " << dmg << " damage.";
+
+
+				// update health
+				ToPosition(pit, 5);
+				cout << "           ";
+				ToPosition(pit, 5);
+				cout << "Life : " << player.health;
+				break;
+			}
+		}
+		starter = (starter == 1) ? 0 : 1;
+		if (enemy.health == 0 || player.health == 0) {
+			fighting = false;
+		}
+		Sleep(3000);
+	}
+	inFight = false;
+	scenes[sindex][sidx]();
+}
+
+#pragma endregion
+
+
+#pragma region Movement System and Calculation
 
 void Move(Pos posPlayer, Pos newPos, vector<vector<string>> mapdata) {
 	int colorNum = (posPlayer == centerPoint ||
@@ -99,7 +435,7 @@ void Move(Pos posPlayer, Pos newPos, vector<vector<string>> mapdata) {
 	}
 }
 
-//                         position    roads drawn                characters drawn in console       
+
 bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<string>> mapdata, Direction &walkpast) {
 	bool doreturn = false;
 //		CENTER POINT  ||  Position of Player
@@ -109,7 +445,7 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 			// Move Function
 			if (!roads.up) {
 				ToPosition(width + 6, 10);
-				cout << "Cant do that!!";
+				cout << "Cant do that!! ";
 				Sleep(500);
 				ToPosition(width + 6, 10);
 				cout << "                               ";
@@ -168,12 +504,22 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 		switch (input) {
 		case 3:
 		case 4:
+		{
 			ToPosition(width + 6, 10);
-			cout << "Cant do that!!";
+			cout << "Watch Out!!";
 			Sleep(500);
 			ToPosition(width + 6, 10);
 			cout << "                               ";
-			break; 
+
+			encounter = spawnEnemy(sindex);
+			if (encounter.name != "") { 
+				inFight = true;
+				doreturn = true;
+				break; 
+			}
+			//if the condition above is false then we dont do fight scene
+			break;
+		}
 		case 2:
 			// Move Function
 			Move(playerpos, centerPoint, mapdata);
@@ -196,12 +542,21 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 			break;
 		case 3:
 		case 4:
+		{
+			Enemy a = spawnEnemy(sindex);
 			ToPosition(width + 6, 10);
-			cout << "Cant do that!!";
+			cout << "Watch Out!!";
 			Sleep(500);
 			ToPosition(width + 6, 10);
 			cout << "                               ";
+
+			encounter = spawnEnemy(sindex);
+			if (encounter.name != "") {
+				inFight = true;
+				break;
+			}
 			break;
+		}
 		case 2:
 			sindex = (sindex == 0) ? 2 : sindex;
 			doreturn = true; //if true then the program knows that we changing  scene and break recursion before proceeding
@@ -214,12 +569,20 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 		switch (input) {
 		case 1:
 		case 2:
+		{
+			Enemy a = spawnEnemy(sindex);
 			ToPosition(width + 6, 10);
-			cout << "Cant do that!!";
+			cout << "Watch Out!!";
 			Sleep(500);
 			ToPosition(width + 6, 10);
 			cout << "                               ";
+
+			if (encounter.name != "") {
+				inFight = true;
+				break;
+			}
 			break;
+		}
 		case 4:
 			// Move Function
 			Move(playerpos, centerPoint, mapdata);
@@ -236,12 +599,20 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 		switch (input) {
 		case 1:
 		case 2:
+		{
+			Enemy a = spawnEnemy(sindex);
 			ToPosition(width + 6, 10);
-			cout << "Cant do that!!";
+			cout << "Watch Out!!";
 			Sleep(500);
 			ToPosition(width + 6, 10);
 			cout << "                               ";
+
+			if (encounter.name != "") {
+				inFight = true;
+				break;
+			}
 			break;
+		}
 		case 3:
 			// Move Function
 			Move(playerpos, centerPoint, mapdata);
@@ -257,6 +628,7 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 	return doreturn;
 }
 
+
 void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playerpos, vector<vector<string>> mapData, map<Direction, int> scenenav) {
 
 	doRepeat = true;
@@ -265,8 +637,10 @@ void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playe
 	bool changeScene;
 	Direction pickedRoad;
 //		D I S P L A Y    P L A Y E R
-	ToPosition(playerpos.x, playerpos.y);
-	cout << playerID;
+	if (inFight == false) {
+		ToPosition(playerpos.x, playerpos.y);
+		cout << playerID;
+	}
 
 //		D I S P L A Y    C H O I C E S
 	ToPosition(indent, 2);
@@ -280,12 +654,16 @@ void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playe
 //  -------------------------------
 	ToPosition(indent, 5);
 	cout << "4) Move Right";
-	ToPosition(indent, 6);
-	cout << "5) Interact";
+	if (sindex == 0) {
+		// show only option 5 at main scene
+		ToPosition(indent, 6);
+		cout << "5) Interact";
+	}
 
-	ToPosition(indent, 7);
+
+	ToPosition(indent, 8);
 	cout << "                      ";
-	ToPosition(indent, 7);
+	ToPosition(indent, 8);
 	cout << "Choose an action : ";
 	cin >> movepick;
 	
@@ -319,19 +697,44 @@ void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playe
 			doRepeat = false;
 		}
 		break;
+	case 5:
+		// interact npc  upgrade weapons and health  unlock weapons
+		if (sindex != 0) { break; }
+		ToPosition(1, height + 4);
+		cout << "It works!! " << sindex;
 	}
 
 
 	if (doRepeat) {
 		return pickMove(scenes, roads, playerpos, mapData, scenenav);
 	}
-	playerpos = reversePosition[playerpos];
-	if (scenenav[pickedRoad] == -1) {
-		scenes[0][0]();
+	if (inFight) {
+		return startFight(player, encounter, scenes);
 	}
-	scenes[sindex][scenenav[pickedRoad]]();
+	else {
+		playerpos = reversePosition[playerpos];
+		if (scenenav[pickedRoad] == -1) {
+			sindex = 0;
+			sidx = 0;
+			scenes[0][0]();
+		}
+
+		sidx = scenenav[pickedRoad];
+		return scenes[sindex][scenenav[pickedRoad]]();
+	}
+	
 }
 
+#pragma endregion
+
+
+#pragma region Map and Borders
+
+/// <summary>
+/// Draws border.
+/// </summary>
+/// <param name="height"></param>
+/// <param name="width"></param>
 void DrawBorder(int height, int width) {
 	int xPos = 1;
 	string borderTop = "\u2584";
@@ -379,7 +782,14 @@ void DrawBorder(int height, int width) {
 	
 }
 
-
+/// <summary>
+/// Draws custom lines and points in 4 direction 
+/// </summary>
+/// <param name="up"></param>
+/// <param name="down"></param>
+/// <param name="left"></param>
+/// <param name="right"></param>
+/// <returns></returns>
 vector<vector<string>> BuildRoads(bool up, bool down, bool left, bool right) {
 	vector<vector<string>> mapIdentity(13, vector<string>(33, " "));
 
@@ -458,3 +868,5 @@ vector<vector<string>> BuildRoads(bool up, bool down, bool left, bool right) {
 
 	return mapIdentity;
 }
+
+#pragma endregion
