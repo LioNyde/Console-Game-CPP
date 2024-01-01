@@ -26,6 +26,7 @@ Pos pointRight = { centerX * 2 - 2, centerY };
 HANDLE color = GetStdHandle(STD_OUTPUT_HANDLE);
 
 
+
 #pragma endregion
 
 
@@ -70,29 +71,37 @@ Enemy spawnEnemy(int index) {
 	if (index == 1) {
 		hostiles = {
 			{agros::none, {"", 0, 0, {0, 0}}},
+			{agros::none, {"", 0, 0, {0, 0}}},
+			{agros::none, {"", 0, 0, {0, 0}}},
 			{agros::blob, {"Blob", 15, 5, {2, 6}}},
-			{agros::boar, {"Boar", 25, 6, {4, 7}}},
+			{agros::none, {"", 0, 0, {0, 0}}},
+			{agros::boar, {"Boar", 25, 6, {4, 7}}}
 		};
 	}
 	if (index == 2) {
 		hostiles = {
 			//{agros::none, {"", 0, 0, {0, 0}}}, add more of this to increase battle free
 			{agros::skeleton, {"Skeleton", 35, 13, {13, 18}}},
-			{agros::draugr, {"Draugr", 40, 16, {14, 20}}}
+			{agros::none, {"", 0, 0, {0, 0}}},
+			{agros::draugr, {"Draugr", 40, 16, {14, 20}}},
+			{agros::none, {"", 0, 0, {0, 0}}},
+			{agros::none, {"", 0, 0, {0, 0}}}
 		};
 	}
 	if (index == 3) {
 		hostiles = {
 			{agros::none, {"", 0, 0, {0, 0}}},
+			{agros::none, {"", 0, 0, {0, 0}}},
 			{agros::goblin, {"Goblin", 35, 13, {13, 18}}},
-			{agros::troll, {"Troll", 40, 16, {14, 20}}}
+			{agros::troll, {"Troll", 40, 16, {14, 20}}},
+			{agros::none, {"", 0, 0, {0, 0}}},
+			{agros::none, {"", 0, 0, {0, 0}}},
 		};
 	}
 	
 	
 	map<agros, Enemy>::iterator spawn = hostiles.begin();
 	advance(spawn, random_0_to_n(hostiles.size() - 1));
-	
 	return spawn->second;
 }
 
@@ -119,16 +128,16 @@ Weapon* getWeapon(Arms arm) {
 		// Create a new Weapon and assign it to the inserted pointer
 		switch (arm) {
 		case Arms::fist:
-			result.first->second = new Weapon("Fist", 0, { 3, 4 });
+			result.first->second = new Weapon("Fist", 0, { 4, 6});
 			break;
 		case Arms::sword:
 			result.first->second = new Weapon("Sword", 12, { 6, 9 });
 			break;
 		case Arms::axe:
-			result.first->second = new Weapon("Axe", 14, { 7, 9 }); 
+			result.first->second = new Weapon("Axe", 14, { 8, 13 }); 
 			break;
 		case Arms::hammer:
-			result.first->second = new Weapon("Hammer", 16, { 6, 8 });
+			result.first->second = new Weapon("Hammer", 16, { 16, 19 });
 			break;
 		}
 	}
@@ -139,13 +148,7 @@ Weapon* getWeapon(Arms arm) {
 
 
 Player::Player(string n, int h) : name(n), health(h) {
-	this->unlockedWeaps = {
-		{Arms::fist, true},
-		{Arms::axe, false},
-		{Arms::sword, false},
-		{Arms::hammer, false}
-	};
-
+	killCount = 0;
 	equipped = getWeapon(Arms::fist);
 }
 
@@ -154,10 +157,111 @@ Player::Player(string n, int h) : name(n), health(h) {
 #pragma endregion
 
 
+#pragma region NPC
+
+
+	void dispTuts(Player &p, vector<vector<function<void()>>> scenes) {
+		system("cls");
+		DrawBorder(height, 65);
+
+		ToPosition(3, 3);
+		cout << "Ur character is " << playerID;
+		ToPosition(3, 4);
+		cout << "Its better to head up north first for easy enemies.";
+		ToPosition(3, 5);
+		cout << "So it is better to read what u can do";
+
+		ToPosition(3, 6);
+		cout << "Using defense battle reduces incoming damange by .25";
+
+		ToPosition(3, 7);
+		cout << "Going to wrong direction has a big chance to engage a battle.";
+
+		ToPosition(3, 8);
+		cout << "You have 1/5th chance to successfully escape a fight.";
+
+		ToPosition(3, 9);
+		cout << "On every 5 kills u have, your health is increased by 10";
+		
+
+		ToPosition(3, 11);
+		cout << "Press Enter to Continue";
+		system("pause");
+		return scenes[sindex][sidx]();
+	}
+
+	void interactWarMaster(Player &p, vector<vector<function<void()>>> scenes) {
+		system("cls");
+		DrawBorder(height, 40);
+
+		ToPosition(3, 3);
+		cout << "Which One you want to unlock? : ";
+		ToPosition(3, 4);
+		cout << "Current Kills : " << p.killCount;
+
+		ToPosition(3, 6);
+		cout << "1. Sword : 8 kills";
+		ToPosition(3, 7);
+		cout << "2. Axe : 10 kills";
+		ToPosition(3, 8);
+		cout << "3. Hammer : 15 kills";
+
+		ToPosition(3, 10);
+		cout << "4. Leave";
+
+		ToPosition(3 + 32 , 3);
+		int pick;
+		cin >> pick;
+
+		switch (pick) {
+		case 1:
+			if (p.killCount >= 8) {
+				p.equipped = getWeapon(Arms::sword);
+				ToPosition(3, 2);
+				cout << "Weapon changed to " << p.equipped->name;
+			}else {
+				ToPosition(3, 2);
+				cout << "Go and get More KIlls";
+			}
+			Sleep(2000);
+			break;
+		case 2:
+			if (p.killCount >= 10) {
+				p.equipped = getWeapon(Arms::sword);
+				ToPosition(3, 2);
+				cout << "Weapon changed to " << p.equipped->name;
+			}
+			else {
+				ToPosition(3, 2);
+				cout << "Go and get More KIlls";
+			}
+			Sleep(2000);
+			break;
+		case 3:
+			if (p.killCount >= 15) {
+				p.equipped = getWeapon(Arms::sword);
+				ToPosition(3, 2);
+				cout << "Weapon changed to " << p.equipped->name;
+			}
+			else {
+				ToPosition(3, 2);
+				cout << "Go and get More KIlls";
+			}
+			Sleep(2000);
+			break;
+		case 4:
+			return scenes[sindex][sidx]();
+		}
+		return scenes[sindex][sidx]();;
+	}
+
+#pragma endregion
+
+
 #pragma region Player and Enemy
 
 bool inFight = false;
-Player player("", 50);
+Player player("", 20);
 void playerSetup(string name) {
 	player.name = name;
 }
@@ -174,7 +278,7 @@ void startFight(Player &player, Enemy &enemy, vector<vector<function<void()>>> s
 	
 	DrawBorder(height, width);
 	ToPosition(6, centerY);
-	cout << "Engaing in Battle...";
+	cout << "Engaging in Battle...";
 	Sleep(1500);
 	ToPosition(6, centerY);
 	cout << "                       ";
@@ -360,10 +464,18 @@ void startFight(Player &player, Enemy &enemy, vector<vector<function<void()>>> s
 		}
 		starter = (starter == 1) ? 0 : 1;
 		if (enemy.health == 0 || player.health == 0) {
+			if (enemy.health <= 0)
+				player.killCount = player.killCount + 1;
 			fighting = false;
 		}
 		Sleep(3000);
 	}
+
+	if ((player.killCount % 5) == 0 && player.killCount > 0) {
+		player.health = player.health + 10;
+	}
+
+
 	inFight = false;
 	scenes[sindex][sidx]();
 }
@@ -442,61 +554,135 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 	if (playerpos == centerPoint) {
 		switch (input) {
 		case 1: // move up
+		{
 			// Move Function
 			if (!roads.up) {
 				ToPosition(width + 6, 10);
-				cout << "Cant do that!! ";
+				cout << "Watch Out!!";
 				Sleep(500);
 				ToPosition(width + 6, 10);
 				cout << "                               ";
+
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					ToPosition(1, height + 4);
+					cout << encounter.name;
+					inFight = true;
+					doreturn = true;
+					break;
+				}
 				break;
 			}
 			Move(playerpos, pointUp, mapdata);
 			playerpos = pointUp;
 			input = 0;
+			int fchance = rand() % (20 - 1) + 1;
+			if (fchance >= 5 && fchance <= 9) {
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					inFight = true;
+					doreturn = true;
+					break;
+				}
+			}
 			break;
-		case 2: 
+		}
+		case 2:
+		{
 			// Move Function
 			if (!roads.down) {
 				ToPosition(width + 6, 10);
-				cout << "Cant do that!!";
+				cout << "Watch Out!!";
 				Sleep(500);
 				ToPosition(width + 6, 10);
 				cout << "                               ";
+
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					inFight = true;
+					doreturn = true;
+					break;
+				}
 				break;
 			}
 			Move(playerpos, pointDown, mapdata);
 			playerpos = pointDown;
 			input = 0;
+			int fchance = rand() % (20 - 1) + 1;
+			if (fchance >= 5 && fchance <= 9) {
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					inFight = true;
+					doreturn = true;
+					break;
+				}
+			}
 			break;
+		}
 		case 3:
+		{
 			// Move Function
 			if (!roads.left) {
 				ToPosition(width + 6, 10);
-				cout << "Cant do that!!";
+				cout << "Watch Out!!";
 				Sleep(500);
 				ToPosition(width + 6, 10);
 				cout << "                               ";
+
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					inFight = true;
+					doreturn = true;
+					break;
+				}
 				break;
 			}
 			Move(playerpos, pointLeft, mapdata);
 			playerpos = pointLeft;
 			input = 0;
+			int fchance = rand() % (20 - 1) + 1;
+			if (fchance >= 5 && fchance <= 9) {
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					inFight = true;
+					doreturn = true;
+					break;
+				}
+			}
 			break;
+		}
 		case 4: // move up
+		{
 			// Move Function
 			if (!roads.right) {
 				ToPosition(width + 6, 10);
-				cout << "Cant do that!!";
+				cout << "Watch Out!!";
 				Sleep(500);
 				ToPosition(width + 6, 10);
 				cout << "                               ";
+
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					inFight = true;
+					doreturn = true;
+					break;
+				}
 				break;
 			}
 			Move(playerpos, pointRight, mapdata);
 			playerpos = pointRight;
 			input = 0;
+			int fchance = rand() % (20 - 1) + 1;
+			if (fchance >= 5 && fchance <= 9) {
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					inFight = true;
+					doreturn = true;
+					break;
+				}
+			}
 			break;
+		}
 		}
 	}
 //		POINT UP  ||  Position of Player
@@ -521,10 +707,21 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 			break;
 		}
 		case 2:
+		{
 			// Move Function
 			Move(playerpos, centerPoint, mapdata);
 			playerpos = centerPoint;
+			int fchance = rand() % (20 - 1) + 1;
+			if (fchance >= 5 && fchance <= 9) {
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					inFight = true;
+					doreturn = true;
+					break;
+				}
+			}
 			break;
+		}
 		case 1:
 			sindex = (sindex == 0) ? 1 : sindex;
 			doreturn = true; //if true then the program knows that we changing  scene and break recursion before proceeding
@@ -536,14 +733,24 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 	if (playerpos == pointDown) {
 		switch (input) {
 		case 1:
+		{
 			// Move Function
 			Move(playerpos, centerPoint, mapdata);
 			playerpos = centerPoint;
+			int fchance = rand() % (20 - 1) + 1;
+			if (fchance >= 5 && fchance <= 9) {
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					inFight = true;
+					doreturn = true;
+					break;
+				}
+			}
 			break;
+		}
 		case 3:
 		case 4:
 		{
-			Enemy a = spawnEnemy(sindex);
 			ToPosition(width + 6, 10);
 			cout << "Watch Out!!";
 			Sleep(500);
@@ -553,6 +760,7 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 			encounter = spawnEnemy(sindex);
 			if (encounter.name != "") {
 				inFight = true;
+				doreturn = true;
 				break;
 			}
 			break;
@@ -570,24 +778,36 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 		case 1:
 		case 2:
 		{
-			Enemy a = spawnEnemy(sindex);
 			ToPosition(width + 6, 10);
 			cout << "Watch Out!!";
 			Sleep(500);
 			ToPosition(width + 6, 10);
 			cout << "                               ";
 
+			encounter = spawnEnemy(sindex);
 			if (encounter.name != "") {
 				inFight = true;
+				doreturn = true;
 				break;
 			}
 			break;
 		}
 		case 4:
+		{
 			// Move Function
 			Move(playerpos, centerPoint, mapdata);
 			playerpos = centerPoint;
+			int fchance = rand() % (20 - 1) + 1;
+			if (fchance >= 5 && fchance <= 9) {
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					inFight = true;
+					doreturn = true;
+					break;
+				}
+			}
 			break;
+		}
 		case 3:
 			doreturn = true; //if true then the program knows that we changing  scene and break recursion before proceeding
 			walkpast = Direction::left;
@@ -600,24 +820,36 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 		case 1:
 		case 2:
 		{
-			Enemy a = spawnEnemy(sindex);
 			ToPosition(width + 6, 10);
 			cout << "Watch Out!!";
 			Sleep(500);
 			ToPosition(width + 6, 10);
 			cout << "                               ";
 
+			encounter = spawnEnemy(sindex);
 			if (encounter.name != "") {
 				inFight = true;
+				doreturn = true;
 				break;
 			}
 			break;
 		}
 		case 3:
+		{
 			// Move Function
 			Move(playerpos, centerPoint, mapdata);
 			playerpos = centerPoint;
+			int fchance = rand() % (20 - 1) + 1;
+			if (fchance >= 5 && fchance <= 9) {
+				encounter = spawnEnemy(sindex);
+				if (encounter.name != "") {
+					inFight = true;
+					doreturn = true;
+					break;
+				}
+			}
 			break;
+		}
 		case 4:
 			sindex = (sindex == 0) ? 3 : sindex;
 			doreturn = true; //if true then the program knows that we changing  scene and break recursion before proceeding
@@ -631,6 +863,8 @@ bool canContinueMove(Pos& playerpos, Choices roads, int input, vector<vector<str
 
 void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playerpos, vector<vector<string>> mapData, map<Direction, int> scenenav) {
 
+	bool interact = false;
+	function<void(Player&, vector<vector<function<void()>>>)> talk;
 	doRepeat = true;
 	int indent = width + 6;
 	int movepick = 0;
@@ -700,15 +934,64 @@ void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playe
 	case 5:
 		// interact npc  upgrade weapons and health  unlock weapons
 		if (sindex != 0) { break; }
-		ToPosition(1, height + 4);
-		cout << "It works!! " << sindex;
-	}
 
+		ToPosition(indent, 2);
+		cout << "                                   ";
+		ToPosition(indent, 3);
+		cout << "                                   ";
+		ToPosition(indent, 4);
+		cout << "                                   ";
+		ToPosition(indent, 5);
+		cout << "                                   ";
+		ToPosition(indent, 6);
+		cout << "                                   ";
+
+		int i = 2;
+		while (i <= 8) {
+			ToPosition(indent, i);
+			cout << "                         ";
+			i++;
+		}
+
+		ToPosition(indent, 2);
+		cout << "Interact to ???.";
+		//  -------------------------------
+		ToPosition(indent, 3);
+		cout << "1) Guide";
+		//  -------------------------------
+		ToPosition(indent, 4);
+		cout << "2) War Master";
+		//  -------------------------------
+		
+		ToPosition(indent, 7);
+		cout << "                           ";
+		ToPosition(indent, 7);
+		cout << "Your choice : ";
+
+		int npc;
+		cin >> npc;
+
+		switch (npc) {
+		case 1:
+		{
+			interact = true;
+			doRepeat = false;
+			talk = dispTuts;
+			break;
+		}
+		case 2:
+			interact = true;
+			doRepeat = false;	
+			talk = interactWarMaster;
+		}
+
+	}
 
 	if (doRepeat) {
 		return pickMove(scenes, roads, playerpos, mapData, scenenav);
-	}
-	if (inFight) {
+	}else if (interact) {
+		talk(player, scenes);
+	}else if (inFight) {
 		return startFight(player, encounter, scenes);
 	}
 	else {

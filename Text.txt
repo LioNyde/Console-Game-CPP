@@ -3,19 +3,18 @@ THINGS TO IMPLEMENT
 
 1. Navigation between scenes  << DONE
 2. NPC interaction
-3. Their features
+3. Their features << done
  - Battle system
- - Drop Item
+ - Drop Item -> unlock system
 
 
  for npc interaction
 
- - use struct for items weapons etc
- - 2 npc 1 for weapons and general store (items only)
- - use some characters to give character to maps, like wave symbols and lines
+- tutorial
+- War Master -- for upgrades
 
 
- CURRENT TODO : fights and drops
+ CURRENT TODO : npc. weapon unlocks
 
 
  - fix continous inputs to movement

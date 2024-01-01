@@ -71,7 +71,9 @@ vector<vector<function<void()>>> scenes = {
 int main()
 {
 	SetConsoleOutputCP(65001);
-	
+	srand(time(0));
+
+
 	DrawBorder(height, width);
 	ToPosition(6, 3);
 	string name = "";
