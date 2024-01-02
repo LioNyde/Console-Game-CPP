@@ -72,6 +72,7 @@ public:
 	int health;
 	Weapon* equipped;
 	int killCount;
+	int maxHp;
 
 	Player(string, int);
 };
@@ -87,7 +88,6 @@ Enemy spawnEnemy(int index);
 void ToPosition(int x, int y);
 void playerSetup(string name);
 void DrawBorder(int height, int width);
-void startFight(Player& player, Enemy& enemy);
 void dispTuts(Player& p, vector<vector<function<void()>>> scenes);
 vector<vector<string>> BuildRoads(bool up, bool down, bool left, bool right);
 void pickMove(vector<vector<function<void()>>> scenes, Choices roadsAvailable, Pos& playerpos, vector<vector<string>> mapdata, map<Direction, int> scenenav);

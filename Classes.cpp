@@ -150,6 +150,8 @@ Weapon* getWeapon(Arms arm) {
 Player::Player(string n, int h) : name(n), health(h) {
 	killCount = 0;
 	equipped = getWeapon(Arms::fist);
+	maxHp = h;
+	health = maxHp;
 }
 
 
@@ -269,7 +271,7 @@ void playerSetup(string name) {
 Enemy encounter;
 
 
-void startFight(Player &player, Enemy &enemy, vector<vector<function<void()>>> scenes) {
+void startFight(Player &player, Enemy &enemy, vector<vector<function<void()>>> scenes, Pos &posP) {
 	system("cls");
 	ToPosition(1, 1);
 
@@ -464,20 +466,27 @@ void startFight(Player &player, Enemy &enemy, vector<vector<function<void()>>> s
 		}
 		starter = (starter == 1) ? 0 : 1;
 		if (enemy.health == 0 || player.health == 0) {
-			if (enemy.health <= 0)
+			if (enemy.health <= 0) {
 				player.killCount = player.killCount + 1;
+			}
+			if (player.health <= 0) {
+				sidx = 0;
+				sindex = 0;
+				posP = centerPoint;
+			}
 			fighting = false;
 		}
-		Sleep(3000);
+		Sleep(2500);
 	}
 
 	if ((player.killCount % 5) == 0 && player.killCount > 0) {
-		player.health = player.health + 10;
+		player.maxHp = player.maxHp + 10;
 	}
 
-
 	inFight = false;
-	scenes[sindex][sidx]();
+	player.health = player.maxHp;
+	return scenes[sindex][sidx]();
+
 }
 
 #pragma endregion
@@ -992,7 +1001,7 @@ void pickMove(vector<vector<function<void()>>> scenes, Choices roads, Pos& playe
 	}else if (interact) {
 		talk(player, scenes);
 	}else if (inFight) {
-		return startFight(player, encounter, scenes);
+		return startFight(player, encounter, scenes, playerpos);
 	}
 	else {
 		playerpos = reversePosition[playerpos];
