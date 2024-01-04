@@ -187,7 +187,6 @@ Player::Player(string n, int h) : name(n), health(h) {
 		
 
 		ToPosition(3, 11);
-		cout << "Press Enter to Continue";
 		system("pause");
 		return scenes[sindex][sidx]();
 	}
