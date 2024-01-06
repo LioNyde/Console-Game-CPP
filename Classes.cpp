@@ -75,15 +75,15 @@ Enemy spawnEnemy(int index) {
 			{agros::none, {"", 0, 0, {0, 0}}},
 			{agros::blob, {"Blob", 15, 5, {2, 6}}},
 			{agros::none, {"", 0, 0, {0, 0}}},
-			{agros::boar, {"Boar", 25, 6, {4, 7}}}
+			{agros::boar, {"Boar", 20, 6, {4, 7}}}
 		};
 	}
 	if (index == 2) {
 		hostiles = {
 			//{agros::none, {"", 0, 0, {0, 0}}}, add more of this to increase battle free
-			{agros::skeleton, {"Skeleton", 35, 13, {13, 18}}},
+			{agros::skeleton, {"Skeleton", 35, 11, {13, 18}}},
 			{agros::none, {"", 0, 0, {0, 0}}},
-			{agros::draugr, {"Draugr", 40, 16, {14, 20}}},
+			{agros::draugr, {"Draugr", 35, 13, {14, 20}}},
 			{agros::none, {"", 0, 0, {0, 0}}},
 			{agros::none, {"", 0, 0, {0, 0}}}
 		};
@@ -93,7 +93,7 @@ Enemy spawnEnemy(int index) {
 			{agros::none, {"", 0, 0, {0, 0}}},
 			{agros::none, {"", 0, 0, {0, 0}}},
 			{agros::goblin, {"Goblin", 35, 13, {13, 18}}},
-			{agros::troll, {"Troll", 40, 16, {14, 20}}},
+			{agros::troll, {"Troll", 40, 15, {14, 20}}},
 			{agros::none, {"", 0, 0, {0, 0}}},
 			{agros::none, {"", 0, 0, {0, 0}}},
 		};
@@ -128,16 +128,16 @@ Weapon* getWeapon(Arms arm) {
 		// Create a new Weapon and assign it to the inserted pointer
 		switch (arm) {
 		case Arms::fist:
-			result.first->second = new Weapon("Fist", 0, { 4, 6});
+			result.first->second = new Weapon("Fist", 0, { 5, 7});
 			break;
 		case Arms::sword:
-			result.first->second = new Weapon("Sword", 12, { 6, 9 });
+			result.first->second = new Weapon("Sword", 12, { 7, 10 });
 			break;
 		case Arms::axe:
-			result.first->second = new Weapon("Axe", 14, { 8, 13 }); 
+			result.first->second = new Weapon("Axe", 14, { 10, 13 }); 
 			break;
 		case Arms::hammer:
-			result.first->second = new Weapon("Hammer", 16, { 16, 19 });
+			result.first->second = new Weapon("Hammer", 16, { 17, 20 });
 			break;
 		}
 	}
@@ -148,7 +148,7 @@ Weapon* getWeapon(Arms arm) {
 
 
 Player::Player(string n, int h) : name(n), health(h) {
-	killCount = 0;
+	killCount = 10;
 	equipped = getWeapon(Arms::fist);
 	maxHp = h;
 	health = maxHp;
@@ -191,6 +191,19 @@ Player::Player(string n, int h) : name(n), health(h) {
 		return scenes[sindex][sidx]();
 	}
 
+	void log(Player p, Arms a, int req) {
+		if (p.killCount >= req) {
+			p.equipped = getWeapon(a);
+			ToPosition(3, 2);
+			cout << "Weapon changed to " << p.equipped->name;
+		}
+		else {
+			ToPosition(3, 2);
+			cout << "Go and get More KIlls";
+		}
+		Sleep(2000);
+	}
+
 	void interactWarMaster(Player &p, vector<vector<function<void()>>> scenes) {
 		system("cls");
 		DrawBorder(height, 40);
@@ -228,7 +241,7 @@ Player::Player(string n, int h) : name(n), health(h) {
 			break;
 		case 2:
 			if (p.killCount >= 10) {
-				p.equipped = getWeapon(Arms::sword);
+				p.equipped = getWeapon(Arms::axe);
 				ToPosition(3, 2);
 				cout << "Weapon changed to " << p.equipped->name;
 			}
@@ -240,7 +253,7 @@ Player::Player(string n, int h) : name(n), health(h) {
 			break;
 		case 3:
 			if (p.killCount >= 15) {
-				p.equipped = getWeapon(Arms::sword);
+				p.equipped = getWeapon(Arms::hammer);
 				ToPosition(3, 2);
 				cout << "Weapon changed to " << p.equipped->name;
 			}
@@ -262,13 +275,29 @@ Player::Player(string n, int h) : name(n), health(h) {
 #pragma region Player and Enemy
 
 bool inFight = false;
-Player player("", 20);
+Player player("", 40);
 void playerSetup(string name) {
 	player.name = name;
 }
 
 Enemy encounter;
 
+
+string randWonMess(bool player, int rand, string name) {
+	string mess;
+	if (player) {
+		switch (rand) {
+		case 1:
+			mess =  "The enemy is obliterated out of existence by " + name;
+		}
+	}
+	else {
+		switch (rand) {
+			mess = "You got clapped by a " + name;	
+		}
+	}
+	return mess;
+}
 
 void startFight(Player &player, Enemy &enemy, vector<vector<function<void()>>> scenes, Pos &posP) {
 	system("cls");
@@ -467,6 +496,7 @@ void startFight(Player &player, Enemy &enemy, vector<vector<function<void()>>> s
 		if (enemy.health == 0 || player.health == 0) {
 			if (enemy.health <= 0) {
 				player.killCount = player.killCount + 1;
+
 			}
 			if (player.health <= 0) {
 				sidx = 0;
