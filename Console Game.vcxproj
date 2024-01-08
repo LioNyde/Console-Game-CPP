@@ -135,7 +135,7 @@
     <ClInclude Include="Classes.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Text.txt" />
+    <None Include="run.bat" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
